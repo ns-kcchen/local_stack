@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: aisecurity-mgmt-service
+  namespace: local-stack
+  labels:
+    app: aisecurity-mgmt-service
+    version: v1
+spec:
+  replicas: 2  # Set to 2+ to test distributed locking across pods
+  selector:
+    matchLabels:
+      app: aisecurity-mgmt-service
+  template:
+    metadata:
+      labels:
+        app: aisecurity-mgmt-service
+        version: v1
+    spec:
+      serviceAccountName: aisecurity-mgmt-sa
+      containers:
+      - name: aisecurity-mgmt-service
+        image: k3d-local-img:5555/aisecurity-mgmt-service:local-dev
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http
+        env:
+        - name: PORT
+          value: "8000"
+        - name: HOST
+          value: "0.0.0.0"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: APP_LABEL
+          value: "aisecurity-mgmt-service"
+        - name: DB_ADDR
+          value: "mongodb-service:27017"
+        - name: DB_ACCOUNT
+          value: "username"  # MongoDB username
+        - name: DB_CREDENT
+          value: "password"  # MongoDB password
+        - name: DB_NAME
+          value: "AISecurityMgmtServiceDB"
+        - name: MONGODB_REPLICA_SET
+          value: "rs0"  # Enable replica set connection for transactions
+        - name: SHOW_DEV_API
+          value: "false"  # Hide dev API endpoints in k3d environment
+        - name: ENABLE_RIS
+          value: "true"  # Enable Mock RIS service integration
+        - name: RIS_URL
+          value: "http://mock-ris-service:8080"  # Mock RIS service endpoint
+        - name: ENABLE_PUSH
+          value: "true"  # Enable Mock Push service integration
+        - name: PUSH_URL
+          value: "http://mock-push-service:8081"  # Mock Push service endpoint
+        - name: PUSH_SCHEDULER_INTERVAL
+          value: "2"  # Push scheduler interval in seconds (default: 10, set to 2 for faster E2E testing)
+        - name: LOG_LEVEL
+          value: "20"  # INFO level (10=DEBUG, 20=INFO, 30=WARNING)
+        livenessProbe:
+          httpGet:
+            path: /health/liveness
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health/readiness
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      restartPolicy: Always

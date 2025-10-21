@@ -1,0 +1,40 @@
+{
+  "CategoryObject":{
+    "Prompt Injection and Jailbreaking": [
+      {
+        "name": "Prompt Injection and Jailbreaking",
+        "description": "Prompts that attempt to bypass LLM safety protocols. This category uses on/off control instead of threshold levels."
+      }
+    ],
+   "Inappropriate Content": [
+      {
+        "name": "Hate Speech and Discrimination",
+        "description": "Content that promotes hatred, prejudice, or discrimination based on protected characteristics."
+      },
+      {
+        "name": "Crimes",
+        "description": "Content that promotes, encourages, or provides guidance on committing unlawful acts."
+      },
+      {
+        "name": "Weapons",
+        "description": "Content that involves the creation, use, or promotion of harmful or dangerous devices designed to cause significant injury or destruction."
+      },
+      {
+        "name": "Suicide and Self-Harm",
+        "description": "Content that promotes, encourages, or discusses self-harm behaviors or suicide."
+      },
+      {
+        "name": "Sex-Related Crimes and Content",
+        "description": "Content that promotes or depicts illegal and harmful sexual activities, including sex trafficking, prostitution, sexual assault, harassment, and child sexual exploitation."
+      },
+      {
+        "name": "Requests for Sensitive Data",
+        "description": "Requests that aim to illegally obtain, extract, or reveal sensitive personal information about real individuals without their consent."
+      },
+      {
+        "name": "Piracy and Copyright",
+        "description": "Prompts or responses that attempt to retrieve, leak, or discuss the acquisition of copyrighted materials without authorization."
+      }
+    ]
+  }
+}

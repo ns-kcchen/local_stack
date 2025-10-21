@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-push-deployment
+  namespace: local-stack
+  labels:
+    app: mock-push
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-push
+  template:
+    metadata:
+      labels:
+        app: mock-push
+    spec:
+      containers:
+      - name: mock-push
+        image: k3d-local-img:5555/mock-push:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

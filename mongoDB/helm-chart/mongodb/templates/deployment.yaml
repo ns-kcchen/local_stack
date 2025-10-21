@@ -1,0 +1,122 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mongodb.fullname" . }}
+  labels:
+    {{- include "mongodb.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "mongodb.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mongodb.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: mongodb
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mongodb.fullname" . }}-secret
+                  key: mongo-root-username
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "mongodb.fullname" . }}-secret
+                  key: mongo-root-password
+            - name: MONGO_INITDB_DATABASE
+              value: "admin"
+            {{- if .Values.replicaSet.enabled }}
+            - name: MONGO_REPLICA_SET_NAME
+              value: {{ .Values.replicaSet.name | quote }}
+            - name: REPLICA_SET_ENABLED
+              value: "true"
+            {{- end }}
+          {{- if .Values.replicaSet.enabled }}
+          command:
+            - bash
+            - -c
+            - |
+              set -e
+              echo "Starting MongoDB with Replica Set..."
+              
+              # Start MongoDB in background
+              mongod --replSet {{ .Values.replicaSet.name | quote }} --bind_ip_all &
+              MONGO_PID=$!
+              
+              # Wait for MongoDB to start
+              until mongo --eval "print('MongoDB is ready')" > /dev/null 2>&1; do
+                echo "Waiting for MongoDB to start..."
+                sleep 2
+              done
+              
+              # Initialize replica set
+              echo "Initializing replica set..."
+              mongo --eval '
+                rs.initiate({
+                  _id: "{{ .Values.replicaSet.name }}",
+                  members: [
+                    {
+                      _id: 0,
+                      host: "mongodb-service.local-stack.svc.cluster.local:27017"
+                    }
+                  ]
+                })
+              '
+              
+              # Wait for replica set to be ready
+              echo "Waiting for replica set to be ready..."
+              until mongo --eval "rs.isMaster().ismaster" --quiet | grep -q "true"; do
+                echo "Waiting for replica set primary..."
+                sleep 2
+              done
+              
+              # Create root user
+              echo "Creating root user..."
+              mongo admin --eval '
+                db.createUser({
+                  user: "'$MONGO_INITDB_ROOT_USERNAME'", 
+                  pwd: "'$MONGO_INITDB_ROOT_PASSWORD'",
+                  roles: [
+                    {role: "userAdminAnyDatabase", db: "admin"},
+                    {role: "readWriteAnyDatabase", db: "admin"},
+                    {role: "dbAdminAnyDatabase", db: "admin"},
+                    {role: "clusterAdmin", db: "admin"}
+                  ]
+                })
+              ' || echo "User may already exist"
+              
+              # Keep MongoDB running in foreground
+              wait $MONGO_PID
+          {{- else }}
+          command:
+            - mongod
+            - --bind_ip_all
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

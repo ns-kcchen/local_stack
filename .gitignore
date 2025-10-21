@@ -1,0 +1,19 @@
+# Local configuration files
+env/host_info.txt
+*.local.*
+config.local.yaml
+
+# Backup files
+*.backup.*
+
+# IDE files
+.vscode/
+.idea/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Test outputs
+test_output/
+*.log

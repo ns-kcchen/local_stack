@@ -1,0 +1,13 @@
+# ==========================================
+# Local Stack Host-Specific Configuration
+# ==========================================
+# Copy this file to env/host_info.txt and fill in your actual paths
+
+# Certificate Path (required for k3d cluster setup)
+# Example (macOS): /Users/your-username/wrkspace/certs.crt
+CERT_PATH=/path/to/your/certs.crt
+
+# Python Interpreter Path (optional, auto-detected if not set)
+# Example: /Users/your-username/.pyenv/versions/3.13.5/bin/python
+# Leave empty to use system default python3
+PYTHON_CMD=

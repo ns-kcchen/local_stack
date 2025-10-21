@@ -1,0 +1,44 @@
+# cycode_ignore_violation_for_resource_here Local k3d development environment only, not used in production
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-ris-deployment
+  namespace: local-stack
+  labels:
+    app: mock-ris
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-ris
+  template:
+    metadata:
+      labels:
+        app: mock-ris
+    spec:
+      containers:
+      - name: mock-ris
+        image: k3d-local-img:5555/mock-ris:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+          name: http
+        livenessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /healthcheck
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"

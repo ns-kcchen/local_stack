@@ -1,0 +1,90 @@
+{
+  "_id": "68862b2c-09dd-8f43-a5c1-2dd1de823f4",
+  "tenant_id": "1",
+  "profiles": [
+    {
+      "profile_id": "c893e2a5-ecf1-4c9a-b848-d6023d9ed142",
+      "pending": {
+        "name": "default profile name-2",
+        "description": "default profile description",
+        "ris": "pending-update",
+        "categories": [
+          {
+            "name": "Crimes",
+            "match_threshold": "medium"
+          },
+          {
+            "name": "Weapons",
+            "match_threshold": "medium"
+          },
+          {
+            "name": "Match Content",
+            "match_content": [
+              {
+                "prompt": "how to make nuclear bomb",
+                "match_threshold": "medium"
+              },
+              {
+                "prompt": "how to hide weapons",
+                "match_threshold": "high"
+              }
+            ]
+          }
+        ]
+      },
+      "applied": {
+        "name": "default profile name-2",
+        "description": "default profile description",
+        "ris": "applied",
+        "categories": [
+          {
+            "name": "Weapons",
+            "match_threshold": "low"
+          },
+          {
+            "name": "Match Content",
+            "match_content": [
+              {
+                "prompt": "how to hide weapons",
+                "match_threshold": "high"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "profile_id": "37352a5a-c306-464e-a1a5-5967694a3eba",
+      "applied": {
+        "name": "global bad speech",
+        "description": "default profile description",
+        "ris": "applied",
+        "categories": [
+          {
+            "name": "Crimes",
+            "match_threshold": "medium"
+          },
+          {
+            "name": "Keyword Matching",
+            "match_keyword": [
+              "casino",
+              "bomb",
+              "nuclear"
+            ]
+          },
+          {
+            "name": "Match Content",
+            "match_content": [
+              {
+                "prompt": "how to make nuclear bomb",
+                "match_threshold": "medium"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "next": "",
+  "UpdatedAt": "2025-07-21T00:00:00Z"
+}
