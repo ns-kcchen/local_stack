@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file (from local_env/pkg or aisecurity-profile-api root)
-COPY aisecurity-profile-api/local_env/pkg/requirements.txt ./requirements.txt
+# Copy requirements file (from local_stack/pkg)
+COPY aisecurity-profile-api/local_stack/pkg/requirements.txt ./requirements.txt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -24,10 +24,10 @@ COPY . ./src/
 # Copy profile API specific code
 COPY aisecurity-profile-api/api/ ./api/
 COPY aisecurity-profile-api/lib/ ./lib/
-COPY aisecurity-profile-api/local_env/pkg/static/ ./static/
+COPY aisecurity-profile-api/local_stack/pkg/static/ ./static/
 
 # Copy entrypoint script
-COPY aisecurity-profile-api/local_env/pkg/entrypoint.sh /entrypoint.sh
+COPY aisecurity-profile-api/local_stack/pkg/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
 # Change ownership of all app files to nsadmin
