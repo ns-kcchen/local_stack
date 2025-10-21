@@ -102,10 +102,7 @@ if ! k3d cluster list | grep -q "$CLUSTER_NAME"; then
         --registry-use "$REGISTRY_NAME:$REGISTRY_PORT" \
         --port "8080:80@loadbalancer" \
         --port "8443:443@loadbalancer" \
-        --port "30080:30080@loadbalancer" \
-        --port "30081:30081@loadbalancer" \
-        --port "30082:30082@loadbalancer" \
-        --port "30083:30083@loadbalancer" \
+        --port "30080-30180:30080-30180@loadbalancer" \
         --wait
 else
     echo "✅ k3d cluster '$CLUSTER_NAME' already exists"

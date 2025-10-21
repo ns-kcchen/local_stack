@@ -25,6 +25,8 @@ spec:
         ports:
         - containerPort: 8000
           name: http
+        - containerPort: 9000
+          name: metrics
         env:
         - name: PORT
           value: "8000"
@@ -59,7 +61,7 @@ spec:
         - name: PUSH_SCHEDULER_INTERVAL
           value: "2"  # Push scheduler interval in seconds (default: 10, set to 2 for faster E2E testing)
         - name: LOG_LEVEL
-          value: "20"  # INFO level (10=DEBUG, 20=INFO, 30=WARNING)
+          value: "10"  # DEBUG level (10=DEBUG, 20=INFO, 30=WARNING)
         livenessProbe:
           httpGet:
             path: /health/liveness
