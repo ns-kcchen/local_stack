@@ -48,8 +48,8 @@ spec:
           value: "AISecurityMgmtServiceDB"
         - name: MONGODB_REPLICA_SET
           value: "rs0"  # Enable replica set connection for transactions
-        - name: SHOW_DEV_API
-          value: "false"  # Hide dev API endpoints in k3d environment
+        - name: SHOW_ADMIN_API
+          value: "false"  # Hide admin API endpoints in k3d environment
         - name: ENABLE_RIS
           value: "true"  # Enable Mock RIS service integration
         - name: RIS_URL

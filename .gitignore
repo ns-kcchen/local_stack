@@ -17,3 +17,8 @@ __pycache__/
 # Test outputs
 test_output/
 *.log
+
+
+src/aisecurity-profile-api/local_stack/
+src/aisecurity-profile-api/docs/
+src/aisecurity-profile-api/tmp/

@@ -48,6 +48,8 @@ echo "🔍 Testing database connection..."
 python3 -c "
 import sys
 import os
+# PYTHONPATH already set in Dockerfile ENV, but add explicitly for safety
+sys.path.insert(0, '/app/src')
 sys.path.append('/app/src/aisecurity-profile-api/lib')
 sys.path.append('/app/src/aisecurity-profile-api/api')
 

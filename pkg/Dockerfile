@@ -18,13 +18,9 @@ COPY aisecurity-profile-api/local_stack/pkg/requirements.txt ./requirements.txt
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy main application code (build context is /Users/kcc/repo/AISecurityService/src)
-COPY . ./src/
-
-# Copy profile API specific code
-COPY aisecurity-profile-api/api/ ./api/
-COPY aisecurity-profile-api/lib/ ./lib/
-COPY aisecurity-profile-api/local_stack/pkg/static/ ./static/
+# Copy the aisecurity-profile-api application and shared lib (match production structure)
+COPY lib /app/src/lib
+COPY aisecurity-profile-api /app/src/aisecurity-profile-api
 
 # Copy entrypoint script
 COPY aisecurity-profile-api/local_stack/pkg/entrypoint.sh /entrypoint.sh
@@ -36,8 +32,8 @@ RUN chown -R nsadmin:nsadmin /app
 # Switch to non-root user
 USER nsadmin
 
-# Set Python path
-ENV PYTHONPATH=/app
+# Set Python path (match production PYTHONPATH)
+ENV PYTHONPATH=/app/src:/app/src/aisecurity-profile-api/lib:/app/src/aisecurity-profile-api/api
 
 # Default database configuration (can be overridden by environment variables)
 ENV DB_ADDR="10.136.124.198:27017"
@@ -55,5 +51,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Command to run the application
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]
+# Command to run the application (cd to app directory first, like production)
+CMD ["sh", "-c", "cd /app/src/aisecurity-profile-api && uvicorn api.main:app --host 0.0.0.0 --port 8000 --log-level info"]
