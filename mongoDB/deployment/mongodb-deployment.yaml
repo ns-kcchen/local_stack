@@ -18,9 +18,58 @@ spec:
     spec:
       containers:
       - name: mongodb
-        image: mongo
+        image: mongo:7.0
         ports:
         - containerPort: 27017
+        command: ["/bin/bash", "-c"]
+        args:
+        - |
+          # Create keyFile for replica set authentication
+          openssl rand -base64 756 > /tmp/mongodb-keyfile
+          chmod 400 /tmp/mongodb-keyfile
+          chown mongodb:mongodb /tmp/mongodb-keyfile
+
+          # Start MongoDB with replica set (without auth first for init)
+          mongod --replSet rs0 --bind_ip_all --keyFile /tmp/mongodb-keyfile &
+          MONGOD_PID=$!
+
+          # Wait for MongoDB to start
+          sleep 5
+
+          # Initialize replica set with service DNS name (required for cross-pod connectivity)
+          mongosh --eval "
+            try {
+              rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongodb-service.local-stack:27017'}]});
+              print('Replica set initialized');
+            } catch (e) {
+              if (e.codeName === 'AlreadyInitialized') {
+                print('Replica set already initialized');
+              } else {
+                print('Error: ' + e.message);
+              }
+            }
+          " || true
+
+          # Wait for replica set to be ready
+          sleep 3
+
+          # Create admin user
+          mongosh --eval "
+            try {
+              db = db.getSiblingDB('admin');
+              db.createUser({
+                user: '$MONGO_INITDB_ROOT_USERNAME',
+                pwd: '$MONGO_INITDB_ROOT_PASSWORD',
+                roles: ['root']
+              });
+              print('Admin user created');
+            } catch (e) {
+              print('User may already exist: ' + e.message);
+            }
+          " || true
+
+          # Keep container running
+          wait $MONGOD_PID
         env:
         - name: MONGO_INITDB_ROOT_USERNAME
           valueFrom:

@@ -15,10 +15,10 @@ pymongo==4.10.1
 # Note: External builds will automatically fall back to PyMongo via smart routing
 
 # Network and communication
-urllib3==2.5.0  # Fix compatibility warning with LibreSSL 2.8.3
+urllib3==2.6.0  # Fix compatibility warning with LibreSSL 2.8.3
 grpcio==1.65.5
 httpx==0.27.2  # For external service integration (RIS, CfgPusher)
-aiohttp==3.11.11  # For health check HTTP requests to external services
+aiohttp==3.12.14  # For health check HTTP requests to external services
 
 # Monitoring and observability
 prometheus_client==0.22.1

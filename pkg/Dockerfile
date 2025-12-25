@@ -18,7 +18,9 @@ COPY aisecurity-profile-api/local_stack/pkg/requirements.txt ./requirements.txt
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the aisecurity-profile-api application and shared lib (match production structure)
+# Copy the aisecurity-profile-api application, shared commonlib, and host service lib (match production structure)
+COPY __init__.py /app/src/__init__.py
+COPY commonlib /app/src/commonlib
 COPY lib /app/src/lib
 COPY aisecurity-profile-api /app/src/aisecurity-profile-api
 
@@ -32,8 +34,11 @@ RUN chown -R nsadmin:nsadmin /app
 # Switch to non-root user
 USER nsadmin
 
-# Set Python path (match production PYTHONPATH)
-ENV PYTHONPATH=/app/src:/app/src/aisecurity-profile-api/lib:/app/src/aisecurity-profile-api/api
+# Set Python path to enable:
+# 1. import lib -> /app/src/aisecurity-profile-api/lib (mgmt-service lib)
+# 2. from ns_log import ... -> /app/src/lib/ns_log.py (host-service lib, no __init__.py trigger)
+# 3. from src.commonlib import ... -> /app/src/commonlib (via /app in entrypoint.sh or direct)
+ENV PYTHONPATH=/app/src/aisecurity-profile-api:/app/src/aisecurity-profile-api/lib:/app/src/aisecurity-profile-api/api:/app/src/lib:/app
 
 # Default database configuration (can be overridden by environment variables)
 ENV DB_ADDR="10.136.124.198:27017"
@@ -51,5 +56,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
 
-# Command to run the application (cd to app directory first, like production)
-CMD ["sh", "-c", "cd /app/src/aisecurity-profile-api && uvicorn api.main:app --host 0.0.0.0 --port 8000 --log-level info"]
+# Command to run the application (no cd needed, PYTHONPATH handles module resolution)
+# --no-access-log: Disable uvicorn access log (cyclic logging not allowed per Logging-Standards.md)
+# --log-level warning: Only show warning/error from uvicorn itself
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "warning", "--no-access-log"]

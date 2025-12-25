@@ -56,10 +56,10 @@ spec:
           value: "http://mock-ris-service:8080"  # Mock RIS service endpoint
         - name: ENABLE_PUSH
           value: "true"  # Enable Mock Push service integration
-        - name: PUSH_URL
+        - name: CFGPUSHER_URL
           value: "http://mock-push-service:8081"  # Mock Push service endpoint
-        - name: PUSH_SCHEDULER_INTERVAL
-          value: "2"  # Push scheduler interval in seconds (default: 10, set to 2 for faster E2E testing)
+        - name: PUSH_CYCLE_INTERVAL_SECONDS
+          value: "5"  # Push cycle interval in seconds (default: 10, set to 5 for E2E testing)
         - name: LOG_LEVEL
           value: "10"  # DEBUG level (10=DEBUG, 20=INFO, 30=WARNING)
         livenessProbe:
