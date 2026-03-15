@@ -21,12 +21,14 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     echo "  -mongodb      Deploy only MongoDB + Mongo Express"
     echo "  -mock-ris     Deploy only Mock RIS service"
     echo "  -mock-push    Deploy only Mock Push service"
-    echo "  (no option)   Deploy all services"
+    echo "  -pgsql        Deploy only PostgreSQL + pgAdmin (Phase 3)"
+    echo "  (no option)   Deploy all services (MongoDB + PostgreSQL + Mock services)"
     echo
     echo "Examples:"
     echo "  ./setup-service.sh              # Deploy all services"
     echo "  ./setup-service.sh -mongodb     # Deploy only MongoDB"
     echo "  ./setup-service.sh -mock-ris    # Deploy only Mock RIS"
+    echo "  ./setup-service.sh -pgsql       # Deploy only PostgreSQL"
     exit 0
 fi
 
@@ -43,6 +45,9 @@ else
             ;;
         -mock-push)
             echo "🚀 Deploying Mock Push service..."
+            ;;
+        -pgsql)
+            echo "🚀 Deploying PostgreSQL stack..."
             ;;
         *)
             echo "❌ Unknown option: $1"

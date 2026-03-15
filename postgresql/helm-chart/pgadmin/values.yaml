@@ -1,0 +1,41 @@
+replicaCount: 1
+
+image:
+  repository: dpage/pgadmin4
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+postgresql:
+  host: "postgresql-service"
+  secretName: "postgresql-secret"
+
+pgadmin:
+  defaultEmail: "admin@local.dev"
+  defaultPassword: "password"
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 80
+
+nodePort:
+  enabled: true
+  port: 30084
+
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 250m
+  #   memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

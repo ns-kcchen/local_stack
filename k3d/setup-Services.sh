@@ -11,11 +11,13 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MONGODB_SETUP="$SCRIPT_DIR/../mongoDB/setup-DB.sh"
+POSTGRESQL_SETUP="$SCRIPT_DIR/../postgresql/setup-DB.sh"
 MOCK_RIS_DIR="$SCRIPT_DIR/../mock_services/mock_ris"
 MOCK_PUSH_DIR="$SCRIPT_DIR/../mock_services/mock_push"
 
 # Parse command line options
 DEPLOY_MONGODB=false
+DEPLOY_POSTGRESQL=false
 DEPLOY_MOCK_RIS=false
 DEPLOY_MOCK_PUSH=false
 DEPLOY_ALL=true
@@ -25,6 +27,9 @@ if [[ -n "$1" ]]; then
     case "$1" in
         -mongodb)
             DEPLOY_MONGODB=true
+            ;;
+        -pgsql)
+            DEPLOY_POSTGRESQL=true
             ;;
         -mock-ris)
             DEPLOY_MOCK_RIS=true
@@ -36,6 +41,7 @@ if [[ -n "$1" ]]; then
 else
     # No arguments, deploy all
     DEPLOY_MONGODB=true
+    DEPLOY_POSTGRESQL=true
     DEPLOY_MOCK_RIS=true
     DEPLOY_MOCK_PUSH=true
 fi
@@ -46,14 +52,20 @@ if [[ "$DEPLOY_ALL" == true ]]; then
     echo "📋 Services to deploy:"
     echo "   1. MongoDB (with Replica Set)"
     echo "   2. Mongo Express (Web UI)"
-    echo "   3. Mock RIS service"
-    echo "   4. Mock Push service"
+    echo "   3. PostgreSQL"
+    echo "   4. pgAdmin (Web UI)"
+    echo "   5. Mock RIS service"
+    echo "   6. Mock Push service"
 else
     echo "🚀 Deploying selected services to k3d cluster..."
     echo "📋 Services to deploy:"
     if [[ "$DEPLOY_MONGODB" == true ]]; then
         echo "   - MongoDB (with Replica Set)"
         echo "   - Mongo Express (Web UI)"
+    fi
+    if [[ "$DEPLOY_POSTGRESQL" == true ]]; then
+        echo "   - PostgreSQL"
+        echo "   - pgAdmin (Web UI)"
     fi
     if [[ "$DEPLOY_MOCK_RIS" == true ]]; then
         echo "   - Mock RIS service"
@@ -89,6 +101,22 @@ if [[ "$DEPLOY_MONGODB" == true ]]; then
 
     echo
     echo "✅ MongoDB deployment completed"
+    echo
+fi
+
+# Step 1b: Deploy PostgreSQL stack (opt-in)
+if [[ "$DEPLOY_POSTGRESQL" == true ]]; then
+    echo "🐘 Step 1b: Deploying PostgreSQL stack..."
+    echo "════════════════════════════════════"
+    if [ -f "$POSTGRESQL_SETUP" ]; then
+        "$POSTGRESQL_SETUP"
+    else
+        echo "❌ PostgreSQL setup script not found: $POSTGRESQL_SETUP"
+        exit 1
+    fi
+
+    echo
+    echo "✅ PostgreSQL deployment completed"
     echo
 fi
 
@@ -176,6 +204,18 @@ if [[ "$DEPLOY_MONGODB" == true ]]; then
     echo
 fi
 
+if [[ "$DEPLOY_POSTGRESQL" == true ]]; then
+    echo "🐘 PostgreSQL:"
+    kubectl get pods -l "app.kubernetes.io/name=postgresql" -n local-stack 2>/dev/null || echo "   PostgreSQL not found"
+    kubectl get svc -l "app.kubernetes.io/name=postgresql" -n local-stack 2>/dev/null || echo "   PostgreSQL service not found"
+
+    echo
+    echo "🖥️  pgAdmin:"
+    kubectl get pods -l "app.kubernetes.io/name=pgadmin" -n local-stack 2>/dev/null || echo "   pgAdmin not found"
+    kubectl get svc -l "app.kubernetes.io/name=pgadmin" -n local-stack 2>/dev/null || echo "   pgAdmin service not found"
+    echo
+fi
+
 if [[ "$DEPLOY_MOCK_RIS" == true ]]; then
     echo "🔧 Mock RIS Service:"
     kubectl get pods -l "app=mock-ris" -n local-stack 2>/dev/null || echo "   Mock RIS not found"
@@ -212,6 +252,14 @@ fi
 
 if [[ "$DEPLOY_MOCK_PUSH" == true ]]; then
     echo "🔧 Mock Push:       http://localhost:30083"
+fi
+
+if [[ "$DEPLOY_POSTGRESQL" == true ]]; then
+    echo "🐘 PostgreSQL:      postgresql-service.local-stack.svc.cluster.local:5432"
+    echo "🖥️  pgAdmin:         http://localhost:30084"
+    echo
+    echo "pgAdmin login: admin@local.dev / password"
+    echo "PostgreSQL:    username / password / AISecurityMgmtServiceDB"
 fi
 
 echo
