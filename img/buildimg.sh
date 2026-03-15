@@ -33,6 +33,10 @@ CORRECT_REQUIREMENTS="$PROJECT_ROOT/../deployments/DockerImage/aisecurity-mgmt-s
 if [ -f "$CORRECT_REQUIREMENTS" ]; then
     echo "📝 Copying correct requirements.txt from deployments/DockerImage/aisecurity-mgmt-service..."
     cp "$CORRECT_REQUIREMENTS" "$LOCAL_REQUIREMENTS"
+    # Strip corporate Artifactory index URL for local build (use public PyPI instead)
+    # ENG-906473 changed requirements.txt to use uv pip compile --emit-index-url which
+    # embeds the internal Artifactory URL - unreachable from local Docker build
+    sed -i '' '/^--index-url/d' "$LOCAL_REQUIREMENTS"
     echo "✅ requirements.txt copied to local_env/pkg"
 else
     echo "⚠️  Correct requirements.txt not found at: $CORRECT_REQUIREMENTS"

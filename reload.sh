@@ -38,6 +38,19 @@ if [ ! -d "$DEPLOYMENT_PATH" ]; then
     exit 1
 fi
 
+# Ensure kubectl context is pointing to local k3d cluster
+CURRENT_CONTEXT=$(kubectl config current-context 2>/dev/null)
+if [ "$CURRENT_CONTEXT" != "k3d-local-cluster" ]; then
+    echo "⚠️  Current context: $CURRENT_CONTEXT"
+    echo "🔀 Switching kubectl context to k3d-local-cluster..."
+    if ! kubectl config use-context k3d-local-cluster &> /dev/null; then
+        echo "❌ Failed to switch to k3d-local-cluster context!"
+        echo "💡 Please start the k3d cluster first using: ./setup-k3d.sh"
+        exit 1
+    fi
+    echo "✅ Context switched to k3d-local-cluster"
+fi
+
 # Check if k3d cluster is running
 if ! kubectl cluster-info &> /dev/null; then
     echo "❌ k3d cluster is not running or not accessible!"
@@ -96,8 +109,18 @@ kubectl get svc -l "app=$APP_NAME" -n local-stack
 echo
 echo "🏥 Health check:"
 sleep 15  # Wait for service to be ready
-if curl -s -f http://localhost:30080/health/liveness > /dev/null; then
-    echo "✅ Service is responding at http://localhost:30080"
+# Health probes run on a standalone port (8001) inside the pod, not exposed via NodePort.
+# Use kubectl exec to verify, and /healthcheck on API port for external check.
+POD_NAME=$(kubectl get pods -l "app=$APP_NAME" -n local-stack -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+if [ -n "$POD_NAME" ]; then
+    if kubectl exec "$POD_NAME" -n local-stack -- curl -s -f http://localhost:8001/health/liveness > /dev/null 2>&1; then
+        echo "✅ Health probe server responding (port 8001 inside pod)"
+    else
+        echo "⚠️  Health probe server not yet responding on port 8001"
+    fi
+fi
+if curl -s -f http://localhost:30080/healthcheck > /dev/null; then
+    echo "✅ API server responding at http://localhost:30080"
 else
     echo "⚠️  Service may still be starting up. Check logs with:"
     echo "   kubectl logs -l \"app=$APP_NAME\""
@@ -119,10 +142,11 @@ echo "🌐 Access Information:"
 echo "════════════════════════"
 echo "📊 Management API:     http://localhost:30080"
 echo "📚 FastAPI Docs:       http://localhost:30080/docs"
-echo "📋 Health Liveness:    http://localhost:30080/health/liveness"
-echo "📋 Health Readiness:   http://localhost:30080/health/readiness"
+echo "📋 Health Probes:      port 8001 inside pod (K8s internal only)"
+echo "📋 Legacy Healthcheck: http://localhost:30080/healthcheck"
 echo
 echo "🔧 Useful commands:"
 echo "   - Check status: kubectl get pods -l \"app=$APP_NAME\" -n local-stack"
 echo "   - View logs: kubectl logs -l \"app=$APP_NAME\" -n local-stack"
 echo "   - Check all services: kubectl get all -n local-stack"
+echo "   - Test probe: kubectl exec <pod> -n local-stack -- curl http://localhost:8001/health/liveness"

@@ -46,12 +46,13 @@ ENV DB_ACCOUNT="cXVlcnlfc2VydmljZQo="
 ENV DB_CREDENT="UzNjdXIzVGgzQ2wwdWQK"
 ENV DB_NAME="AISecurityProfileDB"
 
-# Expose port
+# Expose ports
 EXPOSE 8000
+EXPOSE 8001
 
-# Health check
+# Health check (uses standalone probe server on port 8001)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/health/liveness || exit 1
+    CMD curl -f http://localhost:8001/health/liveness || exit 1
 
 # Set entrypoint
 ENTRYPOINT ["/entrypoint.sh"]
